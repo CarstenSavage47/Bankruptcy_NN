@@ -72,7 +72,7 @@ class Net(nn.Module):
 net = Net(X_train.shape[1])
 
 # Loss Function
-criterion = nn.CrossEntropyLoss()
+criterion = nn.BCELoss()
 optimizer = SGD(net.parameters(), lr=0.1)  ## here we're creating an optimizer to train the neural network.
 #This learning rate seems to be working well so far
 
@@ -92,7 +92,7 @@ def calculate_accuracy(y_true, y_pred):
 def round_tensor(t, decimal_places=3):
   return round(t.item(), decimal_places)
 
-for epoch in range(1000):
+for epoch in range(1010):
 
     y_pred = net(X_train)
     y_pred = torch.squeeze(y_pred)
@@ -103,9 +103,11 @@ for epoch in range(1000):
     test_loss = criterion(y_test_pred, y_test)
     test_acc = calculate_accuracy(y_test, y_test_pred)
 
-    print(f'''    Epoch {epoch}
-    Training loss: {round_tensor(train_loss)} Accuracy: {round_tensor(train_acc)}
-    Testing loss: {round_tensor(test_loss)} Accuracy: {round_tensor(test_acc)}''')
+
+    if (epoch) % 10 == 0:
+        print(f'For Epoch: {epoch}')
+        print(f'Training loss: {round_tensor(train_loss)} Accuracy: {round_tensor(train_acc)}')
+        print(f'Testing loss: {round_tensor(test_loss)} Accuracy: {round_tensor(test_acc)}')
 
 # If test loss is less than 0.02, then break. That result is satisfactory.
     if test_loss < 0.02:
@@ -140,5 +142,20 @@ def AreWeBankrupt(cash_debt,
   return output.ge(0.5).item()
 
 
+# Due to the small number of bankruptcies in the dataset, our model is predicting Not Bankrupt for all observations.
 AreWeBankrupt(cash_debt=0,curr_debt=0,int_totdebt=0,quick_ratio=0,de_ratio=0,debt_assets=0,intcov=0)
-AreWeBankrupt(cash_debt=1,curr_debt=1,int_totdebt=1,quick_ratio=0,de_ratio=1,debt_assets=1,intcov=1)
+AreWeBankrupt(cash_debt=1,curr_debt=1,int_totdebt=1,quick_ratio=1,de_ratio=1,debt_assets=1,intcov=1)
+
+# Define categories for our confusion matrix
+Categories = ['Not Bankrupt','Bankrupt']
+
+# Where y_test_pred > 0.5, we categorize it as 1, or else 0.
+y_test_dummy = np.where(y_test_pred > 0.5,1,0)
+
+# Creating a confusion matrix to visualize the results.
+# Model Evaluation Part 2
+Confusion_Matrix = confusion_matrix(y_test, y_test_dummy)
+Confusion_DF = pandas.DataFrame(Confusion_Matrix, index=Categories, columns=Categories)
+sns.heatmap(Confusion_DF, annot=True, fmt='g')
+plt.ylabel('Observed')
+plt.xlabel('Yhat')
