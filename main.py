@@ -141,7 +141,7 @@ def AreWeBankrupt(cash_debt,
   output = net(t)
   return output.ge(0.5).item()
 
-
+# Feel free to play around with the inputs in this function and evaluate the output.
 # Due to the small number of bankruptcies in the dataset, our model is predicting Not Bankrupt for all observations.
 AreWeBankrupt(cash_debt=0,curr_debt=0,int_totdebt=0,quick_ratio=0,de_ratio=0,debt_assets=0,intcov=0)
 AreWeBankrupt(cash_debt=1,curr_debt=1,int_totdebt=1,quick_ratio=1,de_ratio=1,debt_assets=1,intcov=1)
