@@ -12,6 +12,7 @@ from matplotlib import rc
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn import preprocessing
+from statsmodels.formula.api import ols
 
 import pandas
 import numpy as np
@@ -143,8 +144,20 @@ def AreWeBankrupt(cash_debt,
 
 # Feel free to play around with the inputs in this function and evaluate the output.
 # Due to the small number of bankruptcies in the dataset, our model is predicting Not Bankrupt for all observations.
-AreWeBankrupt(cash_debt=0,curr_debt=0,int_totdebt=0,quick_ratio=0,de_ratio=0,debt_assets=0,intcov=0)
-AreWeBankrupt(cash_debt=1,curr_debt=1,int_totdebt=1,quick_ratio=1,de_ratio=1,debt_assets=1,intcov=1)
+AreWeBankrupt(cash_debt=0,
+              curr_debt=0,
+              int_totdebt=0,
+              quick_ratio=0,
+              de_ratio=0,
+              debt_assets=0,
+              intcov=0)
+AreWeBankrupt(cash_debt=1,
+              curr_debt=1,
+              int_totdebt=1,
+              quick_ratio=1,
+              de_ratio=1,
+              debt_assets=1,
+              intcov=1)
 
 # Define categories for our confusion matrix
 Categories = ['Not Bankrupt','Bankrupt']
@@ -159,3 +172,35 @@ Confusion_DF = pandas.DataFrame(Confusion_Matrix, index=Categories, columns=Cate
 sns.heatmap(Confusion_DF, annot=True, fmt='g')
 plt.ylabel('Observed')
 plt.xlabel('Yhat')
+
+# Let's conduct a linear regression and evaluate the coefficients.
+
+Reg_Out = ols("isBankrupt ~ cash_debt + curr_debt + int_totdebt + quick_ratio + de_ratio + debt_assets + intcov",
+              data = Bankruptcy_Data_Slim).fit()
+
+print(Reg_Out.summary())
+
+# Example linear regression output. According to the linear regression output, increases in curr_debt
+# ...and debt_assets have the largest effects on a firm's likelihood of bankruptcy.
+
+#                     coef    std err          t      P>|t|      [0.025      0.975]
+#   -------------------------------------------------------------------------------
+#   Intercept      -0.0017      0.001     -2.999      0.003      -0.003      -0.001
+#   cash_debt      -0.0005      0.000     -4.256      0.000      -0.001      -0.000
+#   curr_debt       0.0067      0.001      8.177      0.000       0.005       0.008
+#   int_totdebt  2.422e-07   1.12e-05      0.022      0.983   -2.18e-05    2.23e-05
+#   quick_ratio  -4.87e-05   4.29e-05     -1.135      0.256      -0.000    3.54e-05
+#   de_ratio    -5.087e-08   7.94e-07     -0.064      0.949   -1.61e-06     1.5e-06
+#   debt_assets     0.0053      0.000     12.991      0.000       0.005       0.006
+#   intcov      -3.126e-07   2.04e-07     -1.534      0.125   -7.12e-07    8.68e-08
+
+# However, the effects of these variables is so small, even if they are set to 1.0, the upper bound of the scaled data,
+# ...the AreWeBankrupt function still predicts that the company is not bankrupt outputting False.
+
+AreWeBankrupt(cash_debt=0.0,
+              curr_debt=1.0,
+              int_totdebt=0.0,
+              quick_ratio=0.0,
+              de_ratio=0.0,
+              debt_assets=1.0,
+              intcov=0.0)
