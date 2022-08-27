@@ -140,7 +140,7 @@ def AreWeBankrupt(cash_debt,
     .float() \
     .to(device)
   output = net(t)
-  return output.ge(0.5).item()
+  return output.ge(0.5).item(), output.item()
 
 # Feel free to play around with the inputs in this function and evaluate the output.
 # Due to the small number of bankruptcies in the dataset, our model is predicting Not Bankrupt for all observations.
